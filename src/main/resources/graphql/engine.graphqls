@@ -1,0 +1,23 @@
+type Query {
+    hello: String
+    helloWithName(name: String): String
+    customerById(id: ID): Customer
+    customers: [Customer]
+}
+
+type Mutation {
+    addCustomer(name: String): Customer
+    editCustomer(id: ID, name: String): Customer
+}
+
+type Customer {
+    id: ID
+    name: String
+#    account: Account
+    accountBatch: Account
+}
+
+type Account {
+    id: ID,
+    name: String
+}
