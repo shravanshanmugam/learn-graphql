@@ -6,6 +6,8 @@ import org.springframework.graphql.data.method.annotation.BatchMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.stereotype.Controller;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Map;
@@ -34,12 +36,12 @@ public class QueryController {
     }
 
     @QueryMapping
-    public List<Customer> customers() {
+    public Flux<List<Customer>> customers() {
         return crmService.getCustomers();
     }
 
     @QueryMapping
-    public Customer customerById(@Argument int id) {
+    public Mono<Customer> customerById(@Argument int id) {
         return crmService.getCustomerById(id);
     }
 

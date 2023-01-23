@@ -1,10 +1,15 @@
 package com.learn.graphql;
 
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -25,23 +30,34 @@ public class CrmService {
 
     private final AtomicInteger id = new AtomicInteger(customers.size());
 
-    public Customer updateCustomer(int id, String name) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public Mono<Customer> addCustomer(String name) {
+        var newCustomerId = id.incrementAndGet();
+        var newCustomer = new Customer(newCustomerId, name);
+        customers.add(newCustomer);
+        return Mono.just(newCustomer);
+    }
+
+    public Mono<Customer> updateCustomer(int id, String name) {
         Optional<Customer> customerOptional = customers.stream().filter(customer -> id == customer.id()).findFirst();
         if (customerOptional.isPresent()) {
             customers.removeIf(customer -> id == customer.id());
             Customer mutatedCustomer = new Customer(id, name);
             customers.add(mutatedCustomer);
-            return mutatedCustomer;
+            return Mono.just(mutatedCustomer);
         }
-        return null;
+        return Mono.empty();
     }
 
-    public List<Customer> getCustomers() {
-        return customers;
+    @Secured("ROLE_USER")
+    public Flux<List<Customer>> getCustomers() {
+        return Flux.just(customers);
     }
 
-    public Customer getCustomerById(int id) {
-        return customers.stream().filter(customer -> id == customer.id()).findFirst().orElse(null);
+    public Mono<Customer> getCustomerById(int id) {
+        final Customer customer1 = customers.stream().filter(customer -> id == customer.id()).findFirst().orElse(null);
+        if (Objects.isNull(customer1)) return Mono.empty();
+        return Mono.just(customer1);
     }
 
     public Account getAccount(Customer customer) {
@@ -51,12 +67,5 @@ public class CrmService {
 
     public Map<Customer, Account> getCustomerAccountMap(List<Customer> customers) {
         return customers.stream().collect(Collectors.toMap(customer1 -> customer1, customer1 -> new Account(customer1.id(), customer1.name() + " - account")));
-    }
-
-    public Customer addCustomer(String name) {
-        var newCustomerId = id.incrementAndGet();
-        var newCustomer = new Customer(newCustomerId, name);
-        customers.add(newCustomer);
-        return newCustomer;
     }
 }
