@@ -1,21 +1,27 @@
 package com.learn.graphql.query;
 
+import com.learn.graphql.CrmService;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.BatchMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.stereotype.Controller;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static com.learn.graphql.records.GraphQLRecords.Account;
 import static com.learn.graphql.records.GraphQLRecords.Customer;
 
 @Controller
 public class QueryController {
+
+    private final CrmService crmService;
+
+    public QueryController(final CrmService crmService) {
+        this.crmService = crmService;
+    }
+
 
     @QueryMapping
     public String hello() {
@@ -27,33 +33,25 @@ public class QueryController {
         return "Hello " + name;
     }
 
-    public static final List<Customer> customers;
-
-    static {
-        customers = new ArrayList<>();
-        customers.add(new Customer(1, "Shravan"));
-        customers.add(new Customer(2, "Shanmugam"));
-    }
-
     @QueryMapping
     public List<Customer> customers() {
-        return customers;
+        return crmService.getCustomers();
     }
 
     @QueryMapping
     public Customer customerById(@Argument int id) {
-        return customers.stream().filter(customer -> id == customer.id()).findFirst().orElse(null);
+        return crmService.getCustomerById(id);
     }
 
     @SchemaMapping(typeName = "Customer")
     public Account account(Customer customer) {
-        System.out.println("getting account for customer " + customer.id());
-        return new Account(customer.id(), customer.name() + " - account");
+        return crmService.getAccount(customer);
     }
 
     @BatchMapping
     public Map<Customer, Account> accountBatch(List<Customer> customers) {
         System.out.println("getting account for " + customers.size() + " customers");
-        return customers.stream().collect(Collectors.toMap(customer1 -> customer1, customer1 -> new Account(customer1.id(), customer1.name() + " - account")));
+        return crmService.getCustomerAccountMap(customers);
     }
+
 }
