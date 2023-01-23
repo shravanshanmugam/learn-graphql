@@ -50,8 +50,8 @@ public class CrmService {
     }
 
     @Secured("ROLE_USER")
-    public Flux<List<Customer>> getCustomers() {
-        return Flux.just(customers);
+    public Flux<Customer> customers() {
+        return Flux.fromStream(customers.stream());
     }
 
     public Mono<Customer> getCustomerById(int id) {

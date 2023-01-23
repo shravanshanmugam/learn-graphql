@@ -36,8 +36,8 @@ public class QueryController {
     }
 
     @QueryMapping
-    public Flux<List<Customer>> customers() {
-        return crmService.getCustomers();
+    public Flux<Customer> customers() {
+        return crmService.customers();
     }
 
     @QueryMapping
